@@ -49,7 +49,6 @@ class ShiftAug(nn.Module):
 		grid = base_grid + shift
 		return F.grid_sample(x, grid, padding_mode='zeros', align_corners=False)
 
-
 class PixelPreprocess(nn.Module):
 	"""
 	Normalizes pixel observations to [-0.5, 0.5].

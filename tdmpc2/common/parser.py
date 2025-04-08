@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 
 import hydra
+import datetime
 from omegaconf import OmegaConf
 
 from common import MODEL_SIZE, TASK_SET
@@ -35,7 +36,9 @@ def parse_cfg(cfg: OmegaConf) -> OmegaConf:
 			pass
 
 	# Convenience
-	cfg.work_dir = Path(hydra.utils.get_original_cwd()) / 'logs' / cfg.task / str(cfg.seed) / cfg.exp_name
+	current_time = datetime.datetime.now().strftime('%m-%d-%H-%M')
+	exp_name = cfg.exp_name + f'_{current_time}'
+	cfg.work_dir = Path(hydra.utils.get_original_cwd()) / 'logs' / cfg.task / str(cfg.seed) / exp_name
 	cfg.task_title = cfg.task.replace("-", " ").title()
 	cfg.bin_size = (cfg.vmax - cfg.vmin) / (cfg.num_bins-1) # Bin size for discrete regression
 

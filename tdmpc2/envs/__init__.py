@@ -51,7 +51,7 @@ def make_multitask_env(cfg):
 	cfg.episode_lengths = env._episode_lengths
 	return env
 	
-
+# それぞれのタスクを総当たりでマッチングしている
 def make_env(cfg):
 	"""
 	Make an environment for TD-MPC2 experiments.

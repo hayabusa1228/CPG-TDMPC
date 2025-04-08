@@ -2,16 +2,19 @@ defaults:
     - override hydra/launcher: submitit_local
 
 # environment
-task: dog-run
+task: walker_walk_standing
 obs: state
 
 # evaluation
-checkpoint: ???
+checkpoint: ''
+# 検証の際に実行するエピソード数
 eval_episodes: 10
-eval_freq: 50000
+
+# 検証するステップ数の頻度
+eval_freq: 5000
 
 # training
-steps: 10_000_000
+steps: 90_000
 batch_size: 256
 reward_coef: 0.1
 value_coef: 0.1
@@ -25,8 +28,12 @@ discount_denom: 5
 discount_min: 0.95
 discount_max: 0.995
 buffer_size: 1_000_000
-exp_name: default
+exp_name: ver2.6_tdmpc_noise_0.3
 data_dir: ???
+add_noise_step: 40000
+obs_noise_scale: 0.3
+latent_noise_scale: 0
+cpg_noise_scale: 0
 
 # planning
 mpc: true
@@ -39,10 +46,20 @@ min_std: 0.05
 max_std: 2
 temperature: 0.5
 
+# CPG
+use_cpg: false
+K: 1
+wave_base_num : 5
+time_step: 0.01
+omega_bias: 18.84
+omega_scale: 6.28
+cpg_mlp_dim: 128
+
 # actor
 log_std_min: -10
 log_std_max: 2
 entropy_coef: 1e-4
+cpg_entropy_coef: 1e-4
 
 # critic
 num_bins: 101
@@ -54,24 +71,27 @@ model_size: ???
 num_enc_layers: 2
 enc_dim: 256
 num_channels: 32
-mlp_dim: 512
-latent_dim: 512
+mlp_dim: 256
+# 次元膨らませすぎ 10とかでもwalker_walkで十分では？
+# 100ぐらいでいい
+latent_dim: 64
 task_dim: 96
 num_q: 5
 dropout: 0.01
 simnorm_dim: 8
 
 # logging
-wandb_project: ???
-wandb_entity: ???
+wandb_project: cpg_tdmpc2
+wandb_entity: hayabusa1228
+wandb_name: ver2.6_tdmpc_noise_0.3_
 wandb_silent: false
-disable_wandb: true
+disable_wandb: false
 save_csv: true
 
 # misc
 save_video: true
 save_agent: true
-seed: 1
+seed: 5
 
 # convenience
 work_dir: ???
@@ -86,3 +106,13 @@ action_dims: ???
 episode_lengths: ???
 seed_steps: ???
 bin_size: ???
+
+# evaluation
+noise_scale: 0.3
+
+
+
+
+
+
+

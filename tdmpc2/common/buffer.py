@@ -79,7 +79,12 @@ class Buffer():
 		action = td['action'][1:]
 		reward = td['reward'][1:].unsqueeze(-1)
 		task = td['task'][0] if 'task' in td.keys() else None
-		return self._to_device(obs, action, reward, task)
+
+		if self.cfg.use_cpg:
+			cpg_states = td['cpg_states']
+			return self._to_device(obs, cpg_states, action, reward, task)
+		else:
+			return self._to_device(obs, action, reward, task)
 
 	def add(self, td):
 		"""Add an episode to the buffer."""
@@ -94,3 +99,4 @@ class Buffer():
 		"""Sample a batch of subsequences from the buffer."""
 		td = self._buffer.sample().view(-1, self.cfg.horizon+1).permute(1, 0)
 		return self._prepare_batch(td)
+

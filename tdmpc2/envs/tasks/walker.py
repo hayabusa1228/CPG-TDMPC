@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 from dm_control.rl import control
 from dm_control.suite import common
@@ -104,6 +105,106 @@ def backflip(time_limit=walker._DEFAULT_TIME_LIMIT, random=None, environment_kwa
   return control.Environment(
       physics, task, time_limit=time_limit, control_timestep=walker._CONTROL_TIMESTEP,
       **environment_kwargs)
+
+
+@walker.SUITE.add("custom")
+def stand_lying(time_limit=walker._DEFAULT_TIME_LIMIT, random=None, environment_kwargs=None):
+    """Returns the Stand task."""
+    physics = walker.Physics.from_xml_string(*get_model_and_assets())
+    task = PlanarWalkerLying(move_speed=0, random=random)
+    environment_kwargs = environment_kwargs or {}
+    return control.Environment(
+        physics,
+        task,
+        time_limit=time_limit,
+        control_timestep=walker._CONTROL_TIMESTEP,
+        **environment_kwargs
+    )
+
+
+@walker.SUITE.add("custom")
+def walk_standing(time_limit=walker._DEFAULT_TIME_LIMIT, random=None, environment_kwargs=None):
+    """Returns the Walk task."""
+    physics = walker.Physics.from_xml_string(*get_model_and_assets())
+    task = PlanarWalkerLying(move_speed=walker._WALK_SPEED, random=random)
+    environment_kwargs = environment_kwargs or {}
+    return control.Environment(
+        physics,
+        task,
+        time_limit=time_limit,
+        control_timestep=walker._CONTROL_TIMESTEP,
+        **environment_kwargs
+    )
+
+
+@walker.SUITE.add("custom")
+def run_lying(time_limit=walker._DEFAULT_TIME_LIMIT, random=None, environment_kwargs=None):
+    """Returns the Run task."""
+    physics = walker.Physics.from_xml_string(*get_model_and_assets())
+    task = PlanarWalkerLying(move_speed=walker._RUN_SPEED, random=random)
+    environment_kwargs = environment_kwargs or {}
+    return control.Environment(
+        physics,
+        task,
+        time_limit=time_limit,
+        control_timestep=walker._CONTROL_TIMESTEP,
+        **environment_kwargs
+    )
+
+
+@walker.SUITE.add("custom")
+def headstand_lying(
+    time_limit=walker._DEFAULT_TIME_LIMIT, random=None, environment_kwargs=None
+):
+    """Returns the Headstand task."""
+    physics = walker.Physics.from_xml_string(*get_model_and_assets())
+    task = YogaPlanarWalkerLying(goal="flip", move_speed=0, random=random)
+    environment_kwargs = environment_kwargs or {}
+    return control.Environment(
+        physics,
+        task,
+        time_limit=time_limit,
+        control_timestep=walker._CONTROL_TIMESTEP,
+        **environment_kwargs,
+    )
+
+
+@walker.SUITE.add("custom")
+def flip_lying(time_limit=walker._DEFAULT_TIME_LIMIT, random=None, environment_kwargs=None):
+    """Returns the Flip task."""
+    physics = walker.Physics.from_xml_string(*get_model_and_assets())
+    task = YogaPlanarWalkerLying(
+        goal="flip", move_speed=walker._RUN_SPEED * 0.75, random=random
+    )
+    environment_kwargs = environment_kwargs or {}
+    return control.Environment(
+        physics,
+        task,
+        time_limit=time_limit,
+        control_timestep=walker._CONTROL_TIMESTEP,
+        **environment_kwargs,
+    )
+
+
+@walker.SUITE.add("custom")
+def backflip_lying(
+    time_limit=walker._DEFAULT_TIME_LIMIT, random=None, environment_kwargs=None
+):
+    """Returns the Backflip task."""
+    physics = walker.Physics.from_xml_string(*get_model_and_assets())
+    task = YogaPlanarWalkerLying(
+        goal="flip", move_speed=-walker._RUN_SPEED * 0.75, random=random
+    )
+    environment_kwargs = environment_kwargs or {}
+    return control.Environment(
+        physics,
+        task,
+        time_limit=time_limit,
+        control_timestep=walker._CONTROL_TIMESTEP,
+        **environment_kwargs,
+    )
+
+
 
 
 class BackwardsPlanarWalker(walker.PlanarWalker):
@@ -214,6 +315,46 @@ class YogaPlanarWalker(walker.PlanarWalker):
             return self._flip_reward(physics)
         else:
             raise NotImplementedError(f'Goal {self._goal} is not implemented.')
+
+
+# class PlanarWalkerLying(walker.PlanarWalker):
+#     def initialize_episode(self, physics):
+#         qpos = physics.named.data.qpos
+#         for joint_id in range(physics.model.njnt):
+#             joint_name = physics.model.id2name(joint_id, "joint")
+#             if joint_name == "right_hip":
+#                 qpos[joint_name] = self.random.randn() * 0.01
+#             elif joint_name == "left_hip":
+#                 qpos[joint_name] = self.random.randn() * 0.01
+#             else:
+#                 qpos[joint_name] = self.random.randn() * 0.01
+
+#         self.after_step(physics)
+class PlanarWalkerLying(walker.PlanarWalker):
+    def initialize_episode(self, physics):
+        # ランダムで前足を入れ替える
+        flag = self.random.randint(2)
+        qpos = physics.named.data.qpos
+        for joint_id in range(physics.model.njnt):
+            joint_name = physics.model.id2name(joint_id, "joint")
+            if joint_name == "right_hip":
+                if flag == 0:
+                    qpos[joint_name] = 0.3 + self.random.randn() * 0.01
+                else:
+                    qpos[joint_name] = -0.3 + self.random.randn() * 0.01
+            elif joint_name == "left_hip":
+                if flag == 0:
+                    qpos[joint_name] = -0.3 + self.random.randn() * 0.01
+                else:
+                    qpos[joint_name] = 0.3 + self.random.randn() * 0.01
+            else:
+                qpos[joint_name] = self.random.randn() * 0.01
+
+        self.after_step(physics)
+
+
+class YogaPlanarWalkerLying(YogaPlanarWalker, PlanarWalkerLying):
+    pass
 
 
 if __name__ == '__main__':
